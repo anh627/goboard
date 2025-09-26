@@ -1,4 +1,4 @@
-// js/game.js - Complete Go game implementation (Load SGF removed, with debug for buttons)
+// js/game.js - Complete Go game implementation (Detailed guides, fixed stone placement, ALL functions fully written)
 class GoGame {
     constructor(size = 19, komi = 6.5, handicap = 0, ruleSet = 'chinese') {
         this.size = size;
@@ -408,6 +408,7 @@ class GameController {
         window.addEventListener('resize', () => this.resizeCanvas());
     }
     
+    // Hàm thay đổi kích thước canvas để responsive
     resizeCanvas() {
         const maxSize = Math.min(window.innerWidth - 40, window.innerHeight - 200, 800);
         this.cellSize = Math.floor(maxSize / (this.game ? this.game.size : 19));
@@ -417,20 +418,42 @@ class GameController {
         if (this.game) this.drawBoard();
     }
     
+    // Hàm load nội dung hướng dẫn chi tiết cho từng level
     loadGuides() {
         this.guides = {
-            newbie: '<p><strong>Newbie Guide:</strong> Welcome! Place stones on intersections. Surround opponent\'s stones to capture. No suicide moves. Pass to end turn. Double pass ends game. Use undo if needed.</p><img src="assets/images/go-9x9.jpg" alt="Newbie board" onerror="this.src=\'assets/images/board-fallback.png\'" width="200">',
-            casual: '<p><strong>Casual Tip:</strong> Focus on corners first. Watch for Ko fights. Hint available. Score = territory + captures.</p><img src="assets/images/go-quick-match.jpg" alt="Casual game" onerror="this.src=\'assets/images/board-fallback.png\'" width="200">',
-            pro: '<p><strong>Pro Tip:</strong> Build moyo, invade weak groups. Calculate semeai. Optimize yose in endgame.</p><img src="assets/images/go-pro-analysis.jpg" alt="Pro analysis" onerror="this.src=\'assets/images/board-fallback.png\'" width="200">'
+            newbie: '<p><strong>Hướng Dẫn Tân Thủ (Chi Tiết):</strong> Cờ vây chơi trên bàn lưới, đặt quân trên giao điểm. Mục tiêu: Bao vây lãnh thổ lớn hơn đối thủ.</p>' +
+                    '<ul><li><strong>Khí (Liberties):</strong> Quân cần "khí" (ô trống liền kề) để sống. Nếu hết khí, quân bị bắt.</li>' +
+                    '<li><strong>Bắt Quân:</strong> Bao vây hoàn toàn nhóm quân đối thủ để loại bỏ chúng, tăng điểm bắt.</li>' +
+                    '<li><strong>Luật Ko:</strong> Không lặp lại vị trí board ngay lập tức để tránh vòng lặp vô tận.</li>' +
+                    '<li><strong>Anti-Suicide:</strong> Không đặt quân tự sát (trừ khi bắt được quân đối thủ).</li>' +
+                    '<li><strong>Pass Đôi:</strong> Cả hai pass để kết thúc ván, sau đó mark dead groups và tính điểm.</li>' +
+                    '<li><strong>Scoring:</strong> Chinese (lãnh thổ + quân sống), Japanese (lãnh thổ + bắt). Komi cho Trắng để cân bằng.</li>' +
+                    '<li><strong>Handicap:</strong> Quân cược cho người yếu hơn.</li></ul>' +
+                    '<img src="assets/images/go-9x9.jpg" alt="Bàn cờ tân thủ" onerror="this.src=\'assets/images/board-fallback.png\'" width="200"><br>' +
+                    '<a href="https://vi.wikipedia.org/wiki/C%E1%BB%9D_v%C3%A2y" target="_blank">Đọc thêm trên Wikipedia</a> | <a href="https://www.youtube.com/watch?v=M3iI7wSCvK0" target="_blank">Video hướng dẫn cơ bản (YouTube)</a>',
+            casual: '<p><strong>Hướng Dẫn Trung Bình (Chi Tiết):</strong> Tập trung góc trước, xây dựng thế trận. Theo dõi Ko fights để tránh lặp. Sử dụng hint để học. Tính điểm = lãnh thổ + bắt quân.</p>' +
+                    '<ul><li><strong>Xây Dựng:</strong> Chiếm góc và cạnh để mở rộng.</li>' +
+                    '<li><strong>Xâm Nhập:</strong> Tấn công nhóm yếu của đối thủ.</li>' +
+                    '<li><strong>Endgame:</strong> Tối ưu yose (nước cuối) để tăng điểm.</li></ul>' +
+                    '<img src="assets/images/go-quick-match.jpg" alt="Ván trung bình" onerror="this.src=\'assets/images/board-fallback.png\'" width="200"><br>' +
+                    '<a href="https://playgo.to/en/" target="_blank">Chơi thử online</a> | <a href="https://www.youtube.com/watch?v=example-casual" target="_blank">Video tip trung bình</a>',
+            pro: '<p><strong>Hướng Dẫn Nâng Cao (Chi Tiết):</strong> Xây moyo lớn, xâm nhập nhóm yếu. Tính toán semeai (cuộc chiến sống chết). Tối ưu yose endgame để thắng sát nút.</p>' +
+                    '<ul><li><strong>Moyo:</strong> Xây khung lớn để chuyển thành lãnh thổ.</li>' +
+                    '<li><strong>Semeai:</strong> Cuộc chiến giữa hai nhóm, ai hết khí trước thua.</li>' +
+                    '<li><strong>Yose:</strong> Nước cuối để lấp lỗ hổng, tăng điểm nhỏ nhưng quyết định.</li></ul>' +
+                    '<img src="assets/images/go-pro-analysis.jpg" alt="Phân tích pro" onerror="this.src=\'assets/images/board-fallback.png\'" width="200"><br>' +
+                    '<a href="https://senseis.xmp.net/" target="_blank">Sensei\'s Library</a> | <a href="https://www.youtube.com/watch?v=example-pro" target="_blank">Video chiến lược pro</a>'
         };
     }
     
+    // Hàm hiển thị modal hướng dẫn dựa trên level
     showGuide() {
-        const guideContent = document.getElementById('guideContent');
-        guideContent.innerHTML = this.guides[this.level];
+        console.log('Showing guide for level:', this.level); // Debug
+        document.getElementById('guideContent').innerHTML = this.guides[this.level];
         showElement('guideModal');
     }
     
+    // Hàm đóng modal hướng dẫn
     closeGuide() {
         hideElement('guideModal');
         if (document.getElementById('dontShowAgain').checked) {
@@ -438,6 +461,7 @@ class GameController {
         }
     }
     
+    // Hàm thiết lập tất cả event listeners
     setupEventListeners() {
         // Start game
         document.getElementById('startGame').addEventListener('click', () => {
@@ -489,6 +513,7 @@ class GameController {
         });
     }
     
+    // Hàm bắt đầu ván mới
     startNewGame() {
         console.log('Starting new game...'); // Debug
         const size = parseInt(document.getElementById('boardSize').value);
@@ -520,6 +545,7 @@ class GameController {
         this.drawBoard();
         this.updateStatus();
         
+        // Auto-show guide for newbie
         if (this.level === 'newbie' && localStorage.getItem('dontShowGuide') !== 'true') {
             this.showGuide();
         }
@@ -531,17 +557,25 @@ class GameController {
         }
     }
     
+    // Hàm cập nhật visibility của nút hint dựa trên level
     updateHintVisibility() {
         const hintButton = document.getElementById('hint');
         hintButton.style.display = (this.level !== 'pro') ? 'block' : 'none';
     }
     
+    // Hàm xử lý click trên canvas để đặt quân hoặc mark dead
     handleCanvasClick(e) {
         if (this.game.gameOver || this.isAIThinking) return;
         
         const rect = this.canvas.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left - this.boardPadding) / this.cellSize);
-        const y = Math.floor((e.clientY - rect.top - this.boardPadding) / this.cellSize);
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const x = Math.round((clickX - this.boardPadding) / this.cellSize); // Fix: Use round for better accuracy
+        const y = Math.round((clickY - this.boardPadding) / this.cellSize);
+        
+        console.log('Clicked at board position:', x, y); // Debug: Check calculated position
+        
+        if (x < 0 || x >= this.game.size || y < 0 || y >= this.game.size) return; // Out of bounds
         
         if (this.isDeadMarkingMode) {
             this.game.markDeadStone(x, y);
@@ -550,6 +584,7 @@ class GameController {
         }
         
         if (this.game.placeStone(x, y)) {
+            console.log('Stone placed successfully at', x, y); // Debug: Confirm placement
             this.drawBoard();
             this.updateStatus();
             this.updateCaptures();
@@ -557,13 +592,16 @@ class GameController {
             if (this.mode === 'ai' && this.game.currentPlayer === 2) {
                 this.triggerAIMove();
             }
+        } else {
+            console.log('Invalid move at', x, y); // Debug: Why invalid
         }
     }
     
+    // Hàm xử lý hover chuột trên canvas để hiển thị ghost stone
     handleCanvasHover(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left - this.boardPadding) / this.cellSize);
-        const y = Math.floor((e.clientY - rect.top - this.boardPadding) / this.cellSize);
+        const x = Math.round((e.clientX - rect.left - this.boardPadding) / this.cellSize);
+        const y = Math.round((e.clientY - rect.top - this.boardPadding) / this.cellSize);
         
         if (x >= 0 && x < this.game.size && y >= 0 && y < this.game.size) {
             this.cursorPos = { x, y };
@@ -571,11 +609,13 @@ class GameController {
         }
     }
     
+    // Hàm xóa hover khi chuột rời canvas
     clearHover() {
         this.cursorPos = { x: -1, y: -1 };
         this.drawBoard();
     }
     
+    // Hàm xử lý bàn phím để di chuyển cursor và đặt quân
     handleKeyboard(e) {
         let { x, y } = this.cursorPos;
         if (x < 0) {
@@ -589,13 +629,16 @@ class GameController {
             case 'ArrowLeft': x = Math.max(0, x - 1); break;
             case 'ArrowRight': x = Math.min(this.game.size - 1, x + 1); break;
             case 'Enter':
-                this.handleCanvasClick({ clientX: this.boardPadding + x * this.cellSize, clientY: this.boardPadding + y * this.cellSize, target: this.canvas });
+                // Simulate click at cursor position
+                const rect = this.canvas.getBoundingClientRect();
+                this.handleCanvasClick({ clientX: this.boardPadding + x * this.cellSize + rect.left, clientY: this.boardPadding + y * this.cellSize + rect.top, target: this.canvas });
                 return;
         }
         this.cursorPos = { x, y };
         this.drawBoard();
     }
     
+    // Hàm vẽ toàn bộ bàn cờ (grid, stones, hover, hint, etc.)
     drawBoard() {
         const ctx = this.ctx;
         const size = this.game.size;
@@ -650,6 +693,7 @@ class GameController {
         }
     }
     
+    // Hàm vẽ các điểm star (hoshi) trên bàn cờ
     drawStarPoints() {
         const size = this.game.size;
         const positions = this.game.getHandicapPositions(9);
@@ -667,6 +711,7 @@ class GameController {
         });
     }
     
+    // Hàm vẽ một quân cờ với animation và mark dead nếu cần
     drawStone(x, y, color, isDead = false) {
         const px = this.boardPadding + x * this.cellSize;
         const py = this.boardPadding + y * this.cellSize;
@@ -709,6 +754,7 @@ class GameController {
         }
     }
     
+    // Hàm vẽ ghost stone khi hover
     drawHoverStone(x, y) {
         if (this.game.board[y][x] !== 0 || !this.game.isValidMove(x, y)) return;
         
@@ -722,6 +768,7 @@ class GameController {
         this.ctx.fill();
     }
     
+    // Hàm vẽ highlight cho hint move
     drawHint(x, y) {
         const px = this.boardPadding + x * this.cellSize;
         const py = this.boardPadding + y * this.cellSize;
@@ -734,6 +781,7 @@ class GameController {
         this.ctx.stroke();
     }
     
+    // Hàm vẽ indicator cho nước đi cuối cùng
     drawLastMoveIndicator() {
         if (this.game.history.length === 0) return;
         
@@ -756,6 +804,7 @@ class GameController {
         }
     }
     
+    // Hàm vẽ mark dead stones
     drawDeadStones() {
         this.deadStones.forEach(key => {
             const [x, y] = key.split(',').map(Number);
@@ -765,6 +814,7 @@ class GameController {
         });
     }
     
+    // Hàm vẽ territory visualization
     drawTerritory() {
         // Simplified territory visualization for scoring mode
         const visited = new Set();
@@ -786,15 +836,18 @@ class GameController {
         }
     }
     
+    // Hàm cập nhật status lượt chơi
     updateStatus() {
         updateStatus(`Lượt của ${this.game.currentPlayer === 1 ? 'Đen' : 'Trắng'}`);
     }
     
+    // Hàm cập nhật số quân bắt
     updateCaptures() {
         document.getElementById('blackCaptures').textContent = this.game.captures[1];
         document.getElementById('whiteCaptures').textContent = this.game.captures[2];
     }
     
+    // Hàm xử lý pass lượt
     handlePass() {
         if (this.game.pass()) {
             this.endGame();
@@ -804,12 +857,14 @@ class GameController {
         }
     }
     
+    // Hàm xử lý đầu hàng
     handleResign() {
         this.game.resign();
         alert(`Người chơi ${this.game.winner === 1 ? 'Đen' : 'Trắng'} thắng do đối thủ đầu hàng!`);
         this.endGame();
     }
     
+    // Hàm xử lý undo nước đi
     handleUndo() {
         if (this.game.undo()) {
             this.drawBoard();
@@ -818,6 +873,7 @@ class GameController {
         }
     }
     
+    // Hàm hiển thị hint (gợi ý nước đi từ AI)
     showHint() {
         // Call AI for hint (low depth)
         if (this.level === 'pro') return;
@@ -830,6 +886,7 @@ class GameController {
         };
     }
     
+    // Hàm trigger AI tính toán nước đi
     triggerAIMove() {
         showElement('aiThinking');
         this.isAIThinking = true;
@@ -837,6 +894,7 @@ class GameController {
         this.aiWorker.postMessage({board: this.game.board, depth, player: 2});
     }
     
+    // Hàm xử lý nước đi từ AI
     handleAIMove(move) {
         this.isAIThinking = false;
         hideElement('aiThinking');
@@ -846,6 +904,7 @@ class GameController {
         this.updateCaptures();
     }
     
+    // Hàm gửi tin nhắn chat (cho hotseat mode)
     sendChat() {
         const input = document.getElementById('chatInput');
         const message = input.value.trim();
@@ -858,12 +917,14 @@ class GameController {
         }
     }
     
+    // Hàm kết thúc ván và chuyển sang mode mark dead
     endGame() {
         this.isDeadMarkingMode = true;
         showElement('endGame');
         this.drawBoard(); // Show marking mode
     }
     
+    // Hàm xác nhận điểm số sau mark dead
     confirmScore() {
         const score = this.game.calculateScore();
         document.getElementById('scoreInfo').innerHTML = `
@@ -875,6 +936,7 @@ class GameController {
         hideElement('gameArea');
     }
     
+    // Hàm tiếp tục chơi sau endGame (resume)
     resumeGame() {
         this.isDeadMarkingMode = false;
         this.game.gameOver = false;
@@ -883,6 +945,7 @@ class GameController {
         this.drawBoard();
     }
     
+    // Hàm lưu game dưới dạng SGF
     saveGame() {
         const sgf = this.game.exportSGF();
         const blob = new Blob([sgf], {type: 'text/plain'});

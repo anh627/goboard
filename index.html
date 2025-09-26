@@ -103,7 +103,7 @@
             <h3>Chat</h3>
             <div id="chatMessages"></div>
             <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." aria-label="Nhập tin nhắn chat">
+                <input type="text" id="chatInput" placeholder="Nhập tin nhắn...">
                 <button id="sendChat">Gửi</button>
             </div>
         </section>
@@ -118,10 +118,10 @@
     </main>
 
     <!-- Modal Hướng dẫn -->
-    <div id="guideModal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div id="guideModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close" role="button" aria-label="Đóng">&times;</span>
-            <h2 id="guideTitle">Hướng dẫn chơi Cờ Vây</h2>
+            <span class="close">&times;</span>
+            <h2>Hướng dẫn chơi Cờ Vây</h2>
             <div id="guideContent"></div>
             <label>
                 <input type="checkbox" id="dontShowAgain"> Không hiển thị lại
@@ -130,18 +130,18 @@
     </div>
 
     <!-- Loading và AI thinking -->
-    <div id="loadingOverlay" class="overlay" style="display: none;" aria-live="polite">
+    <div id="loadingOverlay" class="overlay" style="display: none;">
         <div class="spinner"></div>
         <p>Đang tải...</p>
     </div>
 
-    <div id="aiThinking" class="overlay" style="display: none;" aria-live="polite">
+    <div id="aiThinking" class="overlay" style="display: none;">
         <div class="spinner"></div>
         <p>AI đang suy nghĩ...</p>
     </div>
 
-    <script src="js/main.js" defer></script>
-    <script src="js/game.js" defer></script>
-    <script src="js/ai.js" defer></script>
+    <script src="js/main.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
 </body>
 </html>

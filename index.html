@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="vi" data-lang="vi" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GoMaster - Chơi Cờ Vây (Hoàn Chỉnh 10/10)</title>
+  <meta name="description" content="Chơi cờ vây chuẩn luật với AI, chấm điểm, hướng dẫn cấp độ." />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/play.css" />
+</head>
+<body>
+  <header>
+    <h1>GoMaster - Chơi Cờ Vây (Giống PlayOK)</h1>
+    <button id="themeToggle">🌗</button>
+  </header>
+
+  <main>
+    <section id="settings">
+      <h2>Thiết lập Ván Đấu</h2>
+      <label for="level">Cấp độ:</label>
+      <select id="level">
+        <option value="newbie">Newbie (Dễ, hướng dẫn chi tiết)</option>
+        <option value="casual">Casual (Trung bình, tip cơ bản)</option>
+        <option value="pro">Pro (Khó, tip nâng cao)</option>
+      </select>
+      <label for="boardSize">Kích thước bàn:</label>
+      <select id="boardSize">
+        <option value="9">9x9</option>
+        <option value="13">13x13</option>
+        <option value="19">19x19</option>
+      </select>
+      <label for="mode">Chế độ:</label>
+      <select id="mode">
+        <option value="ai">Vs AI</option>
+        <option value="hotseat">Vs Người (Hotseat with Chat)</option>
+      </select>
+      <label for="ruleSet">Luật:</label>
+      <select id="ruleSet">
+        <option value="chinese">Chinese (Area Scoring)</option>
+        <option value="japanese">Japanese (Territory Scoring)</option>
+      </select>
+      <label for="komi">Komi (cho Trắng):</label>
+      <input type="number" id="komi" value="6.5" step="0.5">
+      <label for="handicap">Handicap (for Black):</label>
+      <input type="number" id="handicap" value="0" min="0" max="9">
+      <button id="startGame">Bắt đầu Ván Đấu</button>
+      <button id="openGuide">Mở Hướng Dẫn</button>
+      <button id="loadGame">Load SGF</button>
+      <input type="file" id="sgfFile" style="display: none;" accept=".sgf">
+      <button id="saveGame">Save SGF</button>
+    </section>
+
+    <section id="boardSection" style="display: none;">
+      <canvas id="board" width="800" height="800" aria-label="Bàn cờ vây"></canvas>
+      <div id="status" aria-live="polite">Lượt: Đen (Đi trước) - Time: 10:00</div>
+      <div id="blackInfo">Đen: Captures 0 | Time 10:00</div>
+      <div id="whiteInfo">Trắng: Captures 0 | Time 10:00</div>
+      <button id="pass">Pass</button>
+      <button id="resign">Resign</button>
+      <button id="undo">Undo (Last Move)</button>
+      <button id="endGame">Kết thúc & Chấm điểm</button>
+    </section>
+
+    <section id="chat" style="display: none;">
+      <h3>Chat (Hotseat)</h3>
+      <div id="chatMessages"></div>
+      <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." aria-label="Chat input">
+      <button id="sendChat">Gửi</button>
+    </section>
+
+    <section id="summary" style="display: none;">
+      <h2>Tóm tắt Ván Đấu</h2>
+      <div id="score" aria-live="polite"></div>
+      <section id="deadMarking" style="display: none;">
+        <h3>Mark Dead Groups (Click on stones to mark as dead for scoring)</h3>
+        <button id="confirmScore">Xác nhận & Tính Điểm</button>
+      </section>
+    </section>
+
+    <!-- Modal Hướng Dẫn -->
+    <div id="guideModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle" style="display: none;">
+      <div class="modal-content">
+        <h2 id="guideTitle">Hướng Dẫn Chơi Cờ Vây</h2>
+        <span id="closeGuide" class="close" role="button" aria-label="Đóng hướng dẫn">&times;</span>
+        <div id="guideContent"></div>
+        <label for="dontShowAgain">
+          <input type="checkbox" id="dontShowAgain"> Không hiển thị lại
+        </label>
+      </div>
+    </div>
+  </main>
+
+  <div id="loadingOverlay" style="display: none;" aria-live="polite">Đang tải ván đấu...</div>
+  <div id="aiThinking" style="display: none;" aria-live="polite">AI đang tính toán nước đi...</div>
+
+  <script src="js/main.js" defer></script>
+  <script src="js/game.js" defer></script>
+  <script src="js/ai.js" defer></script>
+</body>
+</html>

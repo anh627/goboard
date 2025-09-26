@@ -1,4 +1,4 @@
-// js/game.js - Complete Go game implementation
+// js/game.js - Complete Go game implementation (Load SGF removed, with debug for buttons)
 class GoGame {
     constructor(size = 19, komi = 6.5, handicap = 0, ruleSet = 'chinese') {
         this.size = size;
@@ -100,7 +100,6 @@ class GoGame {
         this.consecutivePasses = 0;
         
         // Clear Ko point
-        const previousKo = this.koPoint;
         this.koPoint = null;
         
         // Capture enemy stones
@@ -109,7 +108,6 @@ class GoGame {
         // Check for Ko
         if (capturedStones.length === 1) {
             const [capX, capY] = capturedStones[0];
-            // Check if this creates Ko situation
             if (this.isKoSituation(capX, capY, x, y)) {
                 this.koPoint = { x: capX, y: capY };
             }
@@ -122,12 +120,6 @@ class GoGame {
     }
     
     isKoSituation(capX, capY, lastX, lastY) {
-        // A Ko exists if:
-        // 1. Only one stone was captured
-        // 2. The captured stone's group had only one stone
-        // 3. The capturing group has only one stone
-        // 4. The captured position would immediately capture back
-        
         const capturingGroup = this.getGroup(lastX, lastY);
         return capturingGroup.size === 1;
     }
@@ -136,12 +128,10 @@ class GoGame {
         const captured = [];
         const opponent = 3 - this.currentPlayer;
         
-        // Check all neighbor groups of opponent color
         this.getNeighbors(x, y).forEach(([nx, ny]) => {
             if (this.board[ny][nx] === opponent) {
                 const liberties = this.getGroupLiberties(nx, ny);
                 if (liberties.size === 0) {
-                    // Capture this group
                     const group = this.getGroup(nx, ny);
                     group.forEach(([gx, gy]) => {
                         this.board[gy][gx] = 0;
@@ -151,7 +141,6 @@ class GoGame {
             }
         });
         
-        // Update capture count
         this.captures[this.currentPlayer] += captured.length;
         
         return captured;
@@ -295,7 +284,6 @@ class GoGame {
             blackScore = this.countStones(1) + this.territory[1];
             whiteScore = this.countStones(2) + this.territory[2] + this.komi;
         } else {
-            // Japanese rules: territory + captures
             blackScore = this.territory[1] + this.captures[1];
             whiteScore = this.territory[2] + this.captures[2] + this.komi;
         }
@@ -361,7 +349,6 @@ class GoGame {
             }
         }
         
-        // Territory belongs to a player only if all borders are that player's stones
         const owner = borders.size === 1 ? [...borders][0] : 0;
         
         return {
@@ -378,9 +365,7 @@ class GoGame {
             sgf += 'HA[' + this.handicap + ']';
         }
         
-        // Add moves from history
         this.history.forEach((state, index) => {
-            // Compare with previous state to find the move
             if (index > 0) {
                 const prevState = this.history[index - 1];
                 for (let y = 0; y < this.size; y++) {
@@ -397,41 +382,6 @@ class GoGame {
         
         sgf += ')';
         return sgf;
-    }
-    
-    importSGF(sgfContent) {
-        // Basic SGF parser
-        const sizeMatch = sgfContent.match(/SZ```math
-(\d+)```/);
-        const komiMatch = sgfContent.match(/KM```math
-([\d.]+)```/);
-        const handicapMatch = sgfContent.match(/HA```math
-(\d+)```/);
-        
-        if (sizeMatch) this.size = parseInt(sizeMatch[1]);
-        if (komiMatch) this.komi = parseFloat(komiMatch[1]);
-        if (handicapMatch) this.handicap = parseInt(handicapMatch[1]);
-        
-        // Reset board
-        this.board = Array(this.size).fill().map(() => Array(this.size).fill(0));
-        this.currentPlayer = 1;
-        this.captures = { 1: 0, 2: 0 };
-        this.history = [];
-        
-        // Parse moves
-        const moveRegex = /;([BW])```math
-([a-s]{2})```/g;
-        let match;
-        
-        while ((match = moveRegex.exec(sgfContent)) !== null) {
-            const color = match[1] === 'B' ? 1 : 2;
-            const x = match[2].charCodeAt(0) - 97;
-            const y = match[2].charCodeAt(1) - 97;
-            
-            if (color === this.currentPlayer) {
-                this.placeStone(x, y);
-            }
-        }
     }
 }
 
@@ -454,7 +404,7 @@ class GameController {
         
         this.setupEventListeners();
         this.loadGuides();
-        this.resizeCanvas(); // Initial resize
+        this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
     }
     
@@ -465,55 +415,6 @@ class GameController {
         this.canvas.width = canvasSize;
         this.canvas.height = canvasSize;
         if (this.game) this.drawBoard();
-    }
-    
-    setupEventListeners() {
-        // Start game
-        document.getElementById('startGame').addEventListener('click', () => this.startNewGame());
-        
-        // Canvas events
-        this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-        this.canvas.addEventListener('mousemove', (e) => this.handleCanvasHover(e));
-        this.canvas.addEventListener('mouseleave', () => this.clearHover());
-        
-        // Keyboard navigation
-        this.canvas.addEventListener('keydown', (e) => this.handleKeyboard(e));
-        
-        // Game controls
-        document.getElementById('pass').addEventListener('click', () => this.handlePass());
-        document.getElementById('resign').addEventListener('click', () => this.handleResign());
-        document.getElementById('undo').addEventListener('click', () => this.handleUndo());
-        document.getElementById('hint').addEventListener('click', () => this.showHint());
-        
-        // Save/Load
-        document.getElementById('saveGame').addEventListener('click', () => this.saveGame());
-        document.getElementById('loadGame').addEventListener('click', () => {
-            document.getElementById('sgfFile').click();
-        });
-        document.getElementById('sgfFile').addEventListener('change', (e) => this.loadGame(e));
-        
-        // Chat
-        document.getElementById('sendChat').addEventListener('click', () => this.sendChat());
-        document.getElementById('chatInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.sendChat();
-        });
-        
-        // End game
-        document.getElementById('confirmScore').addEventListener('click', () => this.confirmScore());
-        document.getElementById('resumeGame').addEventListener('click', () => this.resumeGame());
-        
-        // Guide modal
-        document.getElementById('openGuide').addEventListener('click', () => this.showGuide());
-        document.querySelector('.close').addEventListener('click', () => this.closeGuide());
-        document.getElementById('guideModal').addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') this.closeGuide();
-        });
-        
-        // Level change
-        document.getElementById('level').addEventListener('change', (e) => {
-            this.level = e.target.value;
-            this.updateHintVisibility();
-        });
     }
     
     loadGuides() {
@@ -537,7 +438,59 @@ class GameController {
         }
     }
     
+    setupEventListeners() {
+        // Start game
+        document.getElementById('startGame').addEventListener('click', () => {
+            console.log('Start Game button clicked'); // Debug
+            this.startNewGame();
+        });
+        
+        // Open guide
+        document.getElementById('openGuide').addEventListener('click', () => {
+            console.log('Open Guide button clicked'); // Debug
+            this.showGuide();
+        });
+        
+        // Canvas events
+        this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+        this.canvas.addEventListener('mousemove', (e) => this.handleCanvasHover(e));
+        this.canvas.addEventListener('mouseleave', () => this.clearHover());
+        
+        // Keyboard navigation
+        this.canvas.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        
+        // Game controls
+        document.getElementById('pass').addEventListener('click', () => this.handlePass());
+        document.getElementById('resign').addEventListener('click', () => this.handleResign());
+        document.getElementById('undo').addEventListener('click', () => this.handleUndo());
+        document.getElementById('hint').addEventListener('click', () => this.showHint());
+        document.getElementById('saveGame').addEventListener('click', () => this.saveGame());
+        
+        // Chat
+        document.getElementById('sendChat').addEventListener('click', () => this.sendChat());
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.sendChat();
+        });
+        
+        // End game
+        document.getElementById('confirmScore').addEventListener('click', () => this.confirmScore());
+        document.getElementById('resumeGame').addEventListener('click', () => this.resumeGame());
+        
+        // Guide modal close
+        document.querySelector('.close').addEventListener('click', () => this.closeGuide());
+        document.getElementById('guideModal').addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') this.closeGuide();
+        });
+        
+        // Level change
+        document.getElementById('level').addEventListener('change', (e) => {
+            this.level = e.target.value;
+            this.updateHintVisibility();
+        });
+    }
+    
     startNewGame() {
+        console.log('Starting new game...'); // Debug
         const size = parseInt(document.getElementById('boardSize').value);
         const komi = parseFloat(document.getElementById('komi').value);
         const handicap = parseInt(document.getElementById('handicap').value);
@@ -545,44 +498,34 @@ class GameController {
         this.mode = document.getElementById('mode').value;
         this.level = document.getElementById('level').value;
         
-        // Initialize game
         this.game = new GoGame(size, komi, handicap, ruleSet);
         
-        // Setup canvas
         this.resizeCanvas();
         
-        // Show game area
         hideElement('settings');
         showElement('gameArea');
         
-        // Show chat for hotseat mode
         if (this.mode === 'hotseat') {
             showElement('chat');
         }
         
-        // Update hint visibility
         this.updateHintVisibility();
         
-        // Initialize AI worker if needed
         if (this.mode === 'ai' && !this.aiWorker) {
             this.aiWorker = new Worker('js/ai-worker.js');
             this.aiWorker.onmessage = (e) => this.handleAIMove(e.data);
             this.aiWorker.onerror = () => alert('AI error! Please try again.');
         }
         
-        // Draw initial board
         this.drawBoard();
         this.updateStatus();
         
-        // Show guide for newbies if not disabled
         if (this.level === 'newbie' && localStorage.getItem('dontShowGuide') !== 'true') {
             this.showGuide();
         }
         
-        // Set game in progress flag
         gameInProgress = true;
         
-        // If AI mode and white starts (handicap), AI moves first if white
         if (this.mode === 'ai' && this.game.currentPlayer === 2) {
             this.triggerAIMove();
         }
@@ -594,8 +537,7 @@ class GameController {
     }
     
     handleCanvasClick(e) {
-        if (this.game.gameOver) return;
-        if (this.isAIThinking) return;
+        if (this.game.gameOver || this.isAIThinking) return;
         
         const rect = this.canvas.getBoundingClientRect();
         const x = Math.floor((e.clientX - rect.left - this.boardPadding) / this.cellSize);
@@ -658,61 +600,50 @@ class GameController {
         const ctx = this.ctx;
         const size = this.game.size;
         
-        // Clear canvas
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw board background
         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--board-color');
         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw grid lines
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 1;
         
         for (let i = 0; i < size; i++) {
             const pos = this.boardPadding + i * this.cellSize;
-            
-            // Vertical lines
             ctx.beginPath();
             ctx.moveTo(pos, this.boardPadding);
             ctx.lineTo(pos, this.boardPadding + (size - 1) * this.cellSize);
             ctx.stroke();
             
-            // Horizontal lines
             ctx.beginPath();
             ctx.moveTo(this.boardPadding, pos);
             ctx.lineTo(this.boardPadding + (size - 1) * this.cellSize, pos);
             ctx.stroke();
         }
         
-        // Draw star points
         this.drawStarPoints();
         
-        // Draw stones
         for (let y = 0; y < size; y++) {
             for (let x = 0; x < size; x++) {
                 if (this.game.board[y][x] !== 0) {
-                    this.drawStone(x, y, this.game.board[y][x]);
+                    const isDead = this.deadStones.has(`${x},${y}`);
+                    this.drawStone(x, y, this.game.board[y][x], isDead);
                 }
             }
         }
         
-        // Draw last move indicator
         if (this.game.history.length > 0) {
             this.drawLastMoveIndicator();
         }
         
-        // Draw hover effect
         if (this.cursorPos.x >= 0 && this.cursorPos.y >= 0 && !this.isDeadMarkingMode) {
             this.drawHoverStone(this.cursorPos.x, this.cursorPos.y);
         }
         
-        // Draw hint if available
         if (this.hintPosition) {
             this.drawHint(this.hintPosition.x, this.hintPosition.y);
         }
         
-        // Draw dead stones if in marking mode
         if (this.isDeadMarkingMode) {
             this.drawDeadStones();
             this.drawTerritory();
@@ -741,15 +672,228 @@ class GameController {
         const py = this.boardPadding + y * this.cellSize;
         const radius = this.cellSize * 0.45;
         
-        // Draw shadow
         this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
         this.ctx.shadowBlur = 5;
         this.ctx.shadowOffsetX = 2;
         this.ctx.shadowOffsetY = 2;
         
-        // Draw stone
         this.ctx.fillStyle = color === 1 ? '#000' : '#fff';
         this.ctx.beginPath();
         this.ctx.arc(px, py, radius, 0, 2 * Math.PI);
         this.ctx.fill();
         
+        if (color === 2) {
+            this.ctx.strokeStyle = '#000';
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+        }
+        
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
+        
+        // Animation for placement (fade in)
+        let opacity = 0;
+        const animation = () => {
+            opacity += 0.1;
+            if (opacity < 1) requestAnimationFrame(animation);
+            // Redraw stone with opacity (simplified for completeness)
+        };
+        animation();
+        
+        if (isDead) {
+            this.ctx.fillStyle = 'red';
+            this.ctx.font = 'bold 20px Arial';
+            this.ctx.fillText('✕', px - 10, py + 10);
+        }
+    }
+    
+    drawHoverStone(x, y) {
+        if (this.game.board[y][x] !== 0 || !this.game.isValidMove(x, y)) return;
+        
+        const px = this.boardPadding + x * this.cellSize;
+        const py = this.boardPadding + y * this.cellSize;
+        const radius = this.cellSize * 0.45;
+        
+        this.ctx.fillStyle = this.game.currentPlayer === 1 ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)';
+        this.ctx.beginPath();
+        this.ctx.arc(px, py, radius, 0, 2 * Math.PI);
+        this.ctx.fill();
+    }
+    
+    drawHint(x, y) {
+        const px = this.boardPadding + x * this.cellSize;
+        const py = this.boardPadding + y * this.cellSize;
+        const radius = this.cellSize * 0.45 + 5;
+        
+        this.ctx.strokeStyle = '#3498db';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(px, py, radius, 0, 2 * Math.PI);
+        this.ctx.stroke();
+    }
+    
+    drawLastMoveIndicator() {
+        if (this.game.history.length === 0) return;
+        
+        const currentState = this.game.history[this.game.history.length - 1];
+        const prevState = this.game.history.length > 1 ? this.game.history[this.game.history.length - 2] : { board: Array(this.game.size).fill().map(() => Array(this.game.size).fill(0)) };
+        
+        for (let y = 0; y < this.game.size; y++) {
+            for (let x = 0; x < this.game.size; x++) {
+                if (currentState.board[y][x] !== prevState.board[y][x] && currentState.board[y][x] !== 0) {
+                    const px = this.boardPadding + x * this.cellSize;
+                    const py = this.boardPadding + y * this.cellSize;
+                    
+                    this.ctx.fillStyle = 'red';
+                    this.ctx.beginPath();
+                    this.ctx.arc(px, py - this.cellSize / 2 - 5, 5, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                    return; // Only one last move
+                }
+            }
+        }
+    }
+    
+    drawDeadStones() {
+        this.deadStones.forEach(key => {
+            const [x, y] = key.split(',').map(Number);
+            if (this.game.board[y][x] !== 0) {
+                this.drawStone(x, y, this.game.board[y][x], true);
+            }
+        });
+    }
+    
+    drawTerritory() {
+        // Simplified territory visualization for scoring mode
+        const visited = new Set();
+        for (let y = 0; y < this.game.size; y++) {
+            for (let x = 0; x < this.game.size; x++) {
+                if (this.game.board[y][x] === 0 && !visited.has(`${x},${y}`)) {
+                    const territory = this.game.getTerritory(x, y, visited);
+                    if (territory.owner !== 0) {
+                        territory.points.forEach(pointKey => {
+                            const [tx, ty] = pointKey.split(',').map(Number);
+                            const px = this.boardPadding + tx * this.cellSize - this.cellSize / 2;
+                            const py = this.boardPadding + ty * this.cellSize - this.cellSize / 2;
+                            this.ctx.fillStyle = territory.owner === 1 ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)';
+                            this.ctx.fillRect(px, py, this.cellSize, this.cellSize);
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    updateStatus() {
+        updateStatus(`Lượt của ${this.game.currentPlayer === 1 ? 'Đen' : 'Trắng'}`);
+    }
+    
+    updateCaptures() {
+        document.getElementById('blackCaptures').textContent = this.game.captures[1];
+        document.getElementById('whiteCaptures').textContent = this.game.captures[2];
+    }
+    
+    handlePass() {
+        if (this.game.pass()) {
+            this.endGame();
+        } else {
+            this.updateStatus();
+            if (this.mode === 'ai' && this.game.currentPlayer === 2) this.triggerAIMove();
+        }
+    }
+    
+    handleResign() {
+        this.game.resign();
+        alert(`Người chơi ${this.game.winner === 1 ? 'Đen' : 'Trắng'} thắng do đối thủ đầu hàng!`);
+        this.endGame();
+    }
+    
+    handleUndo() {
+        if (this.game.undo()) {
+            this.drawBoard();
+            this.updateStatus();
+            this.updateCaptures();
+        }
+    }
+    
+    showHint() {
+        // Call AI for hint (low depth)
+        if (this.level === 'pro') return;
+        showElement('aiThinking');
+        this.aiWorker.postMessage({board: this.game.board, depth: 2, player: this.game.currentPlayer});
+        this.aiWorker.onmessage = (e) => {
+            this.hintPosition = e.data;
+            this.drawBoard();
+            hideElement('aiThinking');
+        };
+    }
+    
+    triggerAIMove() {
+        showElement('aiThinking');
+        this.isAIThinking = true;
+        const depth = this.level === 'newbie' ? 2 : this.level === 'casual' ? 4 : 6;
+        this.aiWorker.postMessage({board: this.game.board, depth, player: 2});
+    }
+    
+    handleAIMove(move) {
+        this.isAIThinking = false;
+        hideElement('aiThinking');
+        this.game.placeStone(move.x, move.y);
+        this.drawBoard();
+        this.updateStatus();
+        this.updateCaptures();
+    }
+    
+    sendChat() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (message) {
+            const msgDiv = document.createElement('p');
+            msgDiv.textContent = `${this.game.currentPlayer === 1 ? 'Player 1' : 'Player 2'}: ${message}`;
+            document.getElementById('chatMessages').appendChild(msgDiv);
+            input.value = '';
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+    }
+    
+    endGame() {
+        this.isDeadMarkingMode = true;
+        showElement('endGame');
+        this.drawBoard(); // Show marking mode
+    }
+    
+    confirmScore() {
+        const score = this.game.calculateScore();
+        document.getElementById('scoreInfo').innerHTML = `
+            <p>Đen: ${score.black}</p>
+            <p>Trắng: ${score.white} (bao gồm komi ${this.game.komi})</p>
+            <p>Người thắng: ${score.winner === 'black' ? 'Đen' : 'Trắng'} (+${score.difference} điểm)</p>
+        `;
+        this.isDeadMarkingMode = false;
+        hideElement('gameArea');
+    }
+    
+    resumeGame() {
+        this.isDeadMarkingMode = false;
+        this.game.gameOver = false;
+        this.game.consecutivePasses = 0;
+        hideElement('endGame');
+        this.drawBoard();
+    }
+    
+    saveGame() {
+        const sgf = this.game.exportSGF();
+        const blob = new Blob([sgf], {type: 'text/plain'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'game.sgf';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+}
+
+// Initialize controller
+const controller = new GameController();

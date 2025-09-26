@@ -1,69 +1,141 @@
-/* play.css */
-#settings {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  max-width: 300px;
-  margin: 0 auto;
+/* Styles specific to gameplay */
+#endGame {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
 }
 
-label {
-  margin: 5px 0;
-  font-weight: bold;
+[data-theme="dark"] #endGame {
+    background: #2a2a2a;
 }
 
-select, input {
-  padding: 8px;
-  margin-bottom: 10px;
+#scoreInfo {
+    margin: 2rem 0;
+    font-size: 1.2rem;
 }
 
-#boardSection {
-  position: relative;
-  margin: 20px auto;
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
 }
 
-#blackInfo {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
+/* Hover effects for stones */
+.ghost-stone {
+    opacity: 0.5;
 }
 
-#whiteInfo {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255,255,255,0.6);
-  color: black;
-  padding: 5px 10px;
-  border-radius: 4px;
+/* Dead stone marking */
+.dead-stone {
+    opacity: 0.6;
 }
 
-#chat {
-  margin-top: 20px;
-  border: 1px solid #ccc;
-  padding: 10px;
-  max-height: 200px;
-  overflow-y: auto;
-  background-color: #f9f9f9;
+.dead-stone::after {
+    content: '✕';
+    position: absolute;
+    color: red;
+    font-size: 20px;
+    font-weight: bold;
 }
 
-#chatMessages p {
-  margin: 5px 0;
-  padding: 5px;
-  border-bottom: 1px solid #eee;
+/* Territory markers */
+.territory-black {
+    background: rgba(0, 0, 0, 0.3);
 }
 
-#deadMarking {
-  margin-top: 20px;
-  padding: 10px;
-  background: #fff9e6;
-  border: 1px solid #ffd700;
+.territory-white {
+    background: rgba(255, 255, 255, 0.3);
 }
 
-canvas.dead-marking-mode {
-  cursor: crosshair;
+/* Animations */
+@keyframes placeStone {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.stone-placed {
+    animation: placeStone 0.3s ease-out;
+}
+
+/* Last move indicator */
+.last-move-indicator {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Keyboard navigation cursor */
+.keyboard-cursor {
+    position: absolute;
+    border: 2px solid #3498db;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Hint highlighting */
+.hint-highlight {
+    position: absolute;
+    background: rgba(52, 152, 219, 0.3);
+    border: 2px solid #3498db;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: pulse 2s infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    #boardContainer {
+        padding: 0.5rem;
+    }
+    
+    #gameInfo {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .player-info {
+        justify-content: center;
+    }
+    
+    #controls {
+        padding: 0 1rem;
+    }
+    
+    #controls button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    header, #controls, #chat, .overlay {
+        display: none !important;
+    }
+    
+    #boardContainer {
+        box-shadow: none;
+        padding: 0;
+    }
 }

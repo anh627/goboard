@@ -1,100 +1,147 @@
-<!doctype html>
-<html lang="vi" data-lang="vi" data-theme="light">
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GoMaster - Chơi Cờ Vây (Hoàn Chỉnh 10/10)</title>
-  <meta name="description" content="Chơi cờ vây chuẩn luật với AI, chấm điểm, hướng dẫn cấp độ." />
-  <link rel="stylesheet" href="styles/main.css" />
-  <link rel="stylesheet" href="styles/play.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoMaster - Cờ Vây Trực Tuyến</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/play.css">
 </head>
 <body>
-  <header>
-    <h1>GoMaster - Chơi Cờ Vây (Giống PlayOK)</h1>
-    <button id="themeToggle">🌗</button>
-  </header>
+    <header>
+        <h1>GoMaster - Cờ Vây</h1>
+        <button id="themeToggle" aria-label="Chuyển theme">🌗</button>
+    </header>
 
-  <main>
-    <section id="settings">
-      <h2>Thiết lập Ván Đấu</h2>
-      <label for="level">Cấp độ:</label>
-      <select id="level">
-        <option value="newbie">Newbie (Dễ, hướng dẫn chi tiết)</option>
-        <option value="casual">Casual (Trung bình, tip cơ bản)</option>
-        <option value="pro">Pro (Khó, tip nâng cao)</option>
-      </select>
-      <label for="boardSize">Kích thước bàn:</label>
-      <select id="boardSize">
-        <option value="9">9x9</option>
-        <option value="13">13x13</option>
-        <option value="19">19x19</option>
-      </select>
-      <label for="mode">Chế độ:</label>
-      <select id="mode">
-        <option value="ai">Vs AI</option>
-        <option value="hotseat">Vs Người (Hotseat with Chat)</option>
-      </select>
-      <label for="ruleSet">Luật:</label>
-      <select id="ruleSet">
-        <option value="chinese">Chinese (Area Scoring)</option>
-        <option value="japanese">Japanese (Territory Scoring)</option>
-      </select>
-      <label for="komi">Komi (cho Trắng):</label>
-      <input type="number" id="komi" value="6.5" step="0.5">
-      <label for="handicap">Handicap (for Black):</label>
-      <input type="number" id="handicap" value="0" min="0" max="9">
-      <button id="startGame">Bắt đầu Ván Đấu</button>
-      <button id="openGuide">Mở Hướng Dẫn</button>
-      <button id="loadGame">Load SGF</button>
-      <input type="file" id="sgfFile" style="display: none;" accept=".sgf">
-      <button id="saveGame">Save SGF</button>
-    </section>
+    <main>
+        <section id="settings">
+            <h2>Thiết lập Ván Đấu</h2>
+            
+            <div class="setting-group">
+                <label for="level">Cấp độ:</label>
+                <select id="level">
+                    <option value="newbie">Newbie (Dễ)</option>
+                    <option value="casual" selected>Casual (Trung bình)</option>
+                    <option value="pro">Pro (Khó)</option>
+                </select>
+            </div>
 
-    <section id="boardSection" style="display: none;">
-      <canvas id="board" width="800" height="800" aria-label="Bàn cờ vây"></canvas>
-      <div id="status" aria-live="polite">Lượt: Đen (Đi trước) - Time: 10:00</div>
-      <div id="blackInfo">Đen: Captures 0 | Time 10:00</div>
-      <div id="whiteInfo">Trắng: Captures 0 | Time 10:00</div>
-      <button id="pass">Pass</button>
-      <button id="resign">Resign</button>
-      <button id="undo">Undo (Last Move)</button>
-      <button id="endGame">Kết thúc & Chấm điểm</button>
-    </section>
+            <div class="setting-group">
+                <label for="boardSize">Kích thước bàn:</label>
+                <select id="boardSize">
+                    <option value="9">9x9</option>
+                    <option value="13">13x13</option>
+                    <option value="19" selected>19x19</option>
+                </select>
+            </div>
 
-    <section id="chat" style="display: none;">
-      <h3>Chat (Hotseat)</h3>
-      <div id="chatMessages"></div>
-      <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." aria-label="Chat input">
-      <button id="sendChat">Gửi</button>
-    </section>
+            <div class="setting-group">
+                <label for="mode">Chế độ chơi:</label>
+                <select id="mode">
+                    <option value="ai">Chơi với AI</option>
+                    <option value="hotseat">2 Người (Hotseat)</option>
+                </select>
+            </div>
 
-    <section id="summary" style="display: none;">
-      <h2>Tóm tắt Ván Đấu</h2>
-      <div id="score" aria-live="polite"></div>
-      <section id="deadMarking" style="display: none;">
-        <h3>Mark Dead Groups (Click on stones to mark as dead for scoring)</h3>
-        <button id="confirmScore">Xác nhận & Tính Điểm</button>
-      </section>
-    </section>
+            <div class="setting-group">
+                <label for="ruleSet">Luật chơi:</label>
+                <select id="ruleSet">
+                    <option value="chinese">Chinese (Area Scoring)</option>
+                    <option value="japanese">Japanese (Territory Scoring)</option>
+                </select>
+            </div>
 
-    <!-- Modal Hướng Dẫn -->
-    <div id="guideModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle" style="display: none;">
-      <div class="modal-content">
-        <h2 id="guideTitle">Hướng Dẫn Chơi Cờ Vây</h2>
-        <span id="closeGuide" class="close" role="button" aria-label="Đóng hướng dẫn">&times;</span>
-        <div id="guideContent"></div>
-        <label for="dontShowAgain">
-          <input type="checkbox" id="dontShowAgain"> Không hiển thị lại
-        </label>
-      </div>
+            <div class="setting-group">
+                <label for="komi">Komi (điểm cho Trắng):</label>
+                <input type="number" id="komi" value="6.5" step="0.5" min="0" max="10">
+            </div>
+
+            <div class="setting-group">
+                <label for="handicap">Handicap (quân cược):</label>
+                <input type="number" id="handicap" value="0" min="0" max="9">
+            </div>
+
+            <div class="button-group">
+                <button id="startGame" class="primary">Bắt đầu</button>
+                <button id="openGuide">Hướng dẫn</button>
+                <button id="loadGame">Load SGF</button>
+                <input type="file" id="sgfFile" accept=".sgf" style="display: none;">
+            </div>
+        </section>
+
+        <section id="gameArea" style="display: none;">
+            <div id="boardContainer">
+                <canvas id="board" tabindex="0"></canvas>
+                <div id="gameInfo">
+                    <div id="blackInfo" class="player-info">
+                        <span class="stone black"></span>
+                        <span>Đen: </span>
+                        <span id="blackCaptures">0</span> bắt
+                        <span id="blackTime" class="time">10:00</span>
+                    </div>
+                    <div id="whiteInfo" class="player-info">
+                        <span class="stone white"></span>
+                        <span>Trắng: </span>
+                        <span id="whiteCaptures">0</span> bắt
+                        <span id="whiteTime" class="time">10:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="controls">
+                <button id="pass">Pass</button>
+                <button id="resign">Đầu hàng</button>
+                <button id="undo">Hoàn tác</button>
+                <button id="hint" style="display: none;">Gợi ý</button>
+                <button id="saveGame">Save SGF</button>
+            </div>
+
+            <div id="status" aria-live="polite">Lượt của Đen</div>
+        </section>
+
+        <section id="chat" style="display: none;">
+            <h3>Chat</h3>
+            <div id="chatMessages"></div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." aria-label="Nhập tin nhắn chat">
+                <button id="sendChat">Gửi</button>
+            </div>
+        </section>
+
+        <section id="endGame" style="display: none;">
+            <h2>Kết thúc ván đấu</h2>
+            <p>Click vào nhóm quân chết để đánh dấu</p>
+            <div id="scoreInfo"></div>
+            <button id="confirmScore" class="primary">Xác nhận điểm</button>
+            <button id="resumeGame">Tiếp tục chơi</button>
+        </section>
+    </main>
+
+    <!-- Modal Hướng dẫn -->
+    <div id="guideModal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+        <div class="modal-content">
+            <span class="close" role="button" aria-label="Đóng">&times;</span>
+            <h2 id="guideTitle">Hướng dẫn chơi Cờ Vây</h2>
+            <div id="guideContent"></div>
+            <label>
+                <input type="checkbox" id="dontShowAgain"> Không hiển thị lại
+            </label>
+        </div>
     </div>
-  </main>
 
-  <div id="loadingOverlay" style="display: none;" aria-live="polite">Đang tải ván đấu...</div>
-  <div id="aiThinking" style="display: none;" aria-live="polite">AI đang tính toán nước đi...</div>
+    <!-- Loading và AI thinking -->
+    <div id="loadingOverlay" class="overlay" style="display: none;" aria-live="polite">
+        <div class="spinner"></div>
+        <p>Đang tải...</p>
+    </div>
 
-  <script src="js/main.js" defer></script>
-  <script src="js/game.js" defer></script>
-  <script src="js/ai.js" defer></script>
+    <div id="aiThinking" class="overlay" style="display: none;" aria-live="polite">
+        <div class="spinner"></div>
+        <p>AI đang suy nghĩ...</p>
+    </div>
+
+    <script src="js/main.js" defer></script>
+    <script src="js/game.js" defer></script>
+    <script src="js/ai.js" defer></script>
 </body>
 </html>

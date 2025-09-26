@@ -363,3 +363,32 @@ export function startGame() {
   let controller = new GameController('go-board', 19);
   controller.startGame();
 }
+document.getElementById('start-button').addEventListener('click', function() {
+    showStartDescription();
+});
+
+document.getElementById('instructions-button').addEventListener('click', function() {
+    toggleInstructions();
+});
+
+document.getElementById('toggle-theme-button').addEventListener('click', function() {
+    toggleTheme();
+});
+
+function showStartDescription() {
+    const descriptionElement = document.getElementById('description');
+    descriptionElement.innerText = "Bắt đầu game";
+}
+
+function toggleInstructions() {
+    const instructionsElement = document.getElementById('instructions');
+    if (instructionsElement.style.display === "none") {
+        instructionsElement.style.display = "block";
+    } else {
+        instructionsElement.style.display = "none";
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+}

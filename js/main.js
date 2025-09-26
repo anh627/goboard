@@ -104,6 +104,11 @@ class GameController {
     this.guideButton.className = 'game-button';
     document.body.appendChild(this.guideButton);
 
+    this.themeToggleButton = document.createElement('button');
+    this.themeToggleButton.textContent = 'Toggle Theme';
+    this.themeToggleButton.className = 'game-button';
+    document.body.appendChild(this.themeToggleButton);
+
     this.undoButton = document.createElement('button');
     this.undoButton.textContent = 'Undo';
     this.undoButton.className = 'game-button';
@@ -180,14 +185,15 @@ class GameController {
   }
 
   initEventListeners() {
-    this.startButton.addEventListener('click', this.startGame.bind(this));
+    this.startButton.addEventListener('click', this.showStartDescription.bind(this));
     this.guideButton.addEventListener('click', this.toggleGuide.bind(this));
+    this.themeToggleButton.addEventListener('click', this.toggleTheme.bind(this));
     this.undoButton.addEventListener('click', this.undoMove.bind(this));
     this.redoButton.addEventListener('click', this.redoMove.bind(this));
     this.passButton.addEventListener('click', this.passTurn.bind(this));
     this.modeSelect.addEventListener('change', this.changeMode.bind(this));
     this.difficultySelect.addEventListener('change', this.changeDifficulty.bind(this));
-    this.sizeInput.addEventListener('change', this.changeBoardSize.bind(this));
+        this.sizeInput.addEventListener('change', this.changeBoardSize.bind(this));
     document.getElementById('guide-close')?.addEventListener('click', this.toggleGuide.bind(this));
   }
 
@@ -209,6 +215,17 @@ class GameController {
     this.undoButton.disabled = this.gameState !== 'playing' || !this.game.canUndo();
     this.redoButton.disabled = this.gameState !== 'playing' || !this.game.canRedo();
     this.passButton.disabled = this.gameState !== 'playing';
+  }
+
+  toggleTheme() {
+    document.documentElement.classList.toggle('dark-theme');
+  }
+
+  showStartDescription() {
+    const descriptionElement = document.getElementById('description');
+    if (descriptionElement) {
+      descriptionElement.innerText = "Bắt đầu game";
+    }
   }
 
   startGame() {
@@ -362,33 +379,4 @@ export function startGame() {
   }
   let controller = new GameController('go-board', 19);
   controller.startGame();
-}
-document.getElementById('start-button').addEventListener('click', function() {
-    showStartDescription();
-});
-
-document.getElementById('instructions-button').addEventListener('click', function() {
-    toggleInstructions();
-});
-
-document.getElementById('toggle-theme-button').addEventListener('click', function() {
-    toggleTheme();
-});
-
-function showStartDescription() {
-    const descriptionElement = document.getElementById('description');
-    descriptionElement.innerText = "Bắt đầu game";
-}
-
-function toggleInstructions() {
-    const instructionsElement = document.getElementById('instructions');
-    if (instructionsElement.style.display === "none") {
-        instructionsElement.style.display = "block";
-    } else {
-        instructionsElement.style.display = "none";
-    }
-}
-
-function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
 }

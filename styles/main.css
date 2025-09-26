@@ -1,0 +1,131 @@
+/* main.css */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  color: #333;
+  margin: 0;
+  padding: 20px;
+  text-align: center;
+}
+
+[data-theme="dark"] {
+  background-color: #333;
+  color: #f0f0f0;
+  #board { background-color: #a87c52; }
+  .modal-content { background-color: #444; color: #fff; }
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+  background-color: #d2a679;
+  border: 1px solid #000;
+  transition: background 0.2s;
+}
+
+button:hover, button:focus {
+  background-color: #b58a5e;
+  outline: 2px solid #000;
+}
+
+canvas {
+  background-color: #d2a679;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: opacity 0.3s ease-in-out;
+}
+
+canvas:focus {
+  outline: 2px solid #000;
+}
+
+#status, #blackInfo, #whiteInfo {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+#chat {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#chatInput:focus {
+  outline: 2px solid #000;
+}
+
+#summary {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 20px;
+  background-color: #fff;
+}
+
+#loadingOverlay, #aiThinking {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 24px;
+  z-index: 1000;
+  transition: opacity 0.3s;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  z-index: 1001;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+  transition: opacity 0.3s ease;
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 600px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  animation: slideIn 0.3s forwards;
+  border-radius: 8px;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close:hover, .close:focus {
+  color: black;
+  outline: none;
+}
+
+@keyframes slideIn {
+  from {transform: translateY(-50px); opacity: 0;}
+  to {transform: translateY(0); opacity: 1;}
+}
